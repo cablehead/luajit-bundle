@@ -1,0 +1,77 @@
+#!/usr/bin/env lua
+
+local std = require "std"
+local path = require "path"
+path.fs = require "path.fs"
+
+
+local parser = std.optparse [[
+ lua-bundle v0.1
+
+ Usage: lua-bundle <lua_file> [-o outfile]
+
+   -o, --output=[outfile]   output filename for the binary file
+       --version            display version information
+       --help               display this help
+]]
+
+
+function execute(s)
+  print("Executing: " .. s)
+  local ret = os.execute(s)
+  if ret > 0 then
+    os.exit(ret)
+  end
+end
+
+-- grab the root directory now as parser:parse clobbers arg[0]
+local ROOT = path.join(path.dirname(_G.arg[0]), "..")
+
+_G.arg, _G.opts = parser:parse(_G.arg)
+
+if #_G.arg ~= 1 then
+  parser:help()
+end
+
+local main = _G.arg[1]
+if not path.fs.exists(main) then
+  print(string.format("Could not find: %s", main))
+  os.exit(1)
+end
+
+local output
+if not _G.opts["output"] then
+  output, _ = path.splitext(path.basename(main))
+else
+  output = _G.opts["output"]
+end
+
+local LUAJIT = path.join(ROOT, "deps/luajit")
+
+if not path.fs.exists(path.join(LUAJIT, "Makefile")) then
+  print("Grabbing luajit submodule...")
+  path.fs.chdir(ROOT)
+  local ret = execute("git submodule init && git submodule update")
+end
+
+if not path.fs.exists(path.join(LUAJIT, "src/libluajit.a")) then
+  print("Building luajit...")
+  path.fs.chdir(LUAJIT)
+  execute("make PREFIX=`pwd`/usr/local")
+  execute("make DESTDIR=`pwd` install")
+end
+
+local LUAJIT_BIN = path.join(LUAJIT, "usr/local/bin/luajit-2.1.0-alpha")
+local LUAJIT_LIB = path.join(LUAJIT, "src/libluajit.a")
+
+local main_o, _ = path.splitext(path.basename(main))
+main_o = path.join(path.fs.tmpdir(), string.format("%s.o", main_o))
+
+execute(string.format("%s -b -n main %s %s", LUAJIT_BIN, main, main_o))
+execute(string.format([[ 
+  gcc -O2 -Wall -Wl,-E \
+    -I%s \
+    src/bootstrap.c %s \
+    -lm -ldl \
+    %s \
+    -o %s ]], path.join(LUAJIT, "src"), main_o, LUAJIT_LIB, output))
