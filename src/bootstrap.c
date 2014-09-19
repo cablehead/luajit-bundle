@@ -6,20 +6,20 @@
 
 
 int main(int argc, char *argv[]) {
-	int i;
+  int i;
 
   lua_State* L = luaL_newstate();
   luaL_openlibs(L);
 
-	lua_newtable(L);
+  lua_newtable(L);
 
-	for (i = 0; i < argc; i++) {
-		lua_pushnumber(L, i);
-		lua_pushstring(L, argv[i]);
-		lua_settable(L, -3);
-	}
+  for (i = 0; i < argc; i++) {
+    lua_pushnumber(L, i);
+    lua_pushstring(L, argv[i]);
+    lua_settable(L, -3);
+  }
 
-	lua_setglobal(L, "arg");
+  lua_setglobal(L, "arg");
 
   return luaL_dostring(L, "require \"main\"");
 }
