@@ -5,8 +5,8 @@ to standalone system binaries. It's inspired by Luke Gorrie's
 [Snabbswitch](https://github.com/SnabbCo/snabbswitch) project.
 
 At the moment it supports compiling a single Lua script to a standalone binary,
-and makes the binary argv, argc available to the Lua script as the standard Lua
-arg global.
+and makes the binaries argv and argc available to the Lua script as the
+standard Lua arg global.
 
 ## Dependencies
 
@@ -38,4 +38,4 @@ Compiling a single Lua file isn't particularly useful. This needs the ability
 to describe all the Lua modules which should be linked with the binary.
 
 It'd be great if this could just be installed with luarocks. I'm a complete Lua
-newb though. Is it possible to distributed runnable commands with luarocks?
+newb though. Is it possible to distribute runnable commands with luarocks?
