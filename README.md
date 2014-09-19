@@ -18,13 +18,13 @@ arg global.
 
 foo.lua:
 
-```
+```lua
   for i, v in ipairs(arg) do
     print(i, v)
   end
 ```
 
-```
+```bash
   $ bin/luajit-bundle foo.lua -o ./foo
   ...
   $ ./foo bar 123
